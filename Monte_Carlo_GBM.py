@@ -2,19 +2,28 @@ import numpy as np
 import matplotlib.pyplot as plt
 import yfinance as yf
 
-# Fetch latest SPY price
-ticker = yf.Ticker("SPY")
+# Fetch latest Stock Prices
+tick_input = input("Enter Yahoo Ticker Symbol: ").strip().upper()
+ticker = yf.Ticker(tick_input)
+ticker_year = ticker.history(period="1y")["Close"]
 latest = ticker.history(period="1d")
 latest_close = latest['Close'].iloc[-1]
 
+# Mu
+beta = ticker.info.get("beta")
+r_f = yf.Ticker("^TNX").history(period="1y")["Close"].iloc[-1] / 100
+sp500 = yf.Ticker("^GSPC").history(period="1y")["Close"]
+r_m = (sp500.iloc[-1] / sp500.iloc[0]) -1
+log_tick = np.log(tick_year / tick_year.shift(1)).dropna()
+
 # Simulation parameters
 S0 = latest_close        # starting stock price
-mu = 0.10       # expected annual return
-sigma = 0.1123  # annual volatility
+mu = r_f + beta * (r_m - r_f)    # expected annual return
+sigma = log_tick.std() * np.sqrt(252)  # annual volatility
 T = 1           # time in years
 N = 252         # number of steps
 dt = T / N      # time step size
-M = 10000       # number of simulation paths
+M = 1000       # number of simulation paths
 
 # Set up matrix for all paths
 price_paths = np.zeros((M, N+1))
@@ -35,9 +44,9 @@ final_prices = price_paths[:, -1]
 fig, axs = plt.subplots(1, 2, figsize=(16, 6))
 
 # Plot sample price paths in the first subplot
-for i in range(10000):
+for i in range(1000):
     axs[0].plot(price_paths[i])
-axs[0].set_title("Monte Carlo Simulated Price Paths")
+axs[0].set_title(f"Monte Carlo {tick_input} Price Paths")
 axs[0].set_xlabel("Trading Days")
 axs[0].set_ylabel("Price")
 axs[0].grid(True)
@@ -45,7 +54,7 @@ axs[0].grid(True)
 
 # Plot histogram of final prices in the second subplot
 axs[1].hist(final_prices, bins=100, edgecolor='black')
-axs[1].set_title("Distribution of Final Simulated Prices (1 Year)")
+axs[1].set_title(f"Distribution of Final {tick_input} Prices (1 Year)")
 axs[1].set_xlabel("Final Price")
 axs[1].set_ylabel("Frequency")
 axs[1].grid(True)
