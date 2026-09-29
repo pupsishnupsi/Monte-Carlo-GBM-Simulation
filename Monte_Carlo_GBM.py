@@ -14,7 +14,7 @@ beta = ticker.info.get("beta")
 r_f = yf.Ticker("^TNX").history(period="1y")["Close"].iloc[-1] / 100
 sp500 = yf.Ticker("^GSPC").history(period="1y")["Close"]
 r_m = (sp500.iloc[-1] / sp500.iloc[0]) -1
-log_tick = np.log(tick_year / tick_year.shift(1)).dropna()
+log_tick = np.log(ticker_year / ticker_year.shift(1)).dropna()
 
 # Simulation parameters
 S0 = latest_close        # starting stock price
